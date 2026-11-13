@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useAccounts } from "@/components/accounts/accounts-provider";
 import { EmptyState } from "@/components/layout/empty-state";
+import { useTransactions } from "@/components/transactions/transactions-provider";
 import { accountTypeLabel } from "@/lib/accounts/types";
+import { accountBalanceMinor } from "@/lib/transactions/balance";
 import { formatMinorAsSgd } from "@/lib/money/sgd";
 
 function balanceLabel(accountType: string, minor: number) {
@@ -13,6 +15,7 @@ function balanceLabel(accountType: string, minor: number) {
 
 export function AccountList() {
   const { accounts, ready, notice } = useAccounts();
+  const { transactions, ready: transactionsReady } = useTransactions();
   const active = accounts.filter((account) => !account.isArchived);
   const archived = accounts.filter((account) => account.isArchived);
 
@@ -27,7 +30,7 @@ export function AccountList() {
       <header className="mt-3 mb-5">
         <h1 className="text-2xl font-extrabold tracking-tight">Accounts</h1>
         <p className="mt-1 text-sm leading-6 text-muted-foreground">
-          Cash, bank accounts, credit cards and e-wallets. The balance starts from the opening amount.
+          Cash, bank accounts, credit cards and e-wallets. Balances include the opening amount and saved transactions.
         </p>
       </header>
 
@@ -78,7 +81,12 @@ export function AccountList() {
                     </span>
                   </span>
                   <span className="text-right font-extrabold">
-                    {balanceLabel(account.accountType, account.openingBalanceMinor)}
+                    {balanceLabel(
+                      account.accountType,
+                      transactionsReady
+                        ? accountBalanceMinor(account, transactions)
+                        : account.openingBalanceMinor,
+                    )}
                   </span>
                 </Link>
               </li>

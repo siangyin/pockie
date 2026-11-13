@@ -1,14 +1,9 @@
 import Link from "next/link";
-import { AccountSelect, AccountsSaveNote } from "@/components/accounts/account-select";
-import { Button } from "@/components/ui/button";
-import { DateField } from "@/components/forms/date-field";
+import { TransferForm } from "@/components/transactions/transfer-form";
 
 export const metadata = {
   title: "Transfer",
 };
-
-const fieldClassName =
-  "h-12 w-full rounded-xl border border-input bg-card px-3 text-base font-medium";
 
 export default function AddTransferPage() {
   return (
@@ -25,26 +20,7 @@ export default function AddTransferPage() {
           Moving money between your accounts does not count as income or spending.
         </p>
       </header>
-      <form className="grid gap-4" aria-describedby="save-note">
-        <label htmlFor="amount" className="grid gap-1.5 text-sm font-semibold">
-          Amount
-          <input
-            id="amount"
-            name="amount"
-            inputMode="decimal"
-            placeholder="0.00"
-            required
-            className={fieldClassName}
-          />
-        </label>
-        <AccountSelect id="from-account" label="From" />
-        <AccountSelect id="to-account" label="To" />
-        <DateField id="date" label="Date" />
-        <Button type="button" disabled className="h-12 w-full text-base">
-          Save transfer
-        </Button>
-        <AccountsSaveNote kind="transfer" />
-      </form>
+      <TransferForm />
     </div>
   );
 }
