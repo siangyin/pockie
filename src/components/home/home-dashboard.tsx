@@ -4,16 +4,18 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useBudgets } from "@/components/budgets/budgets-provider";
 import { useRecurring } from "@/components/recurring/recurring-provider";
-import { CurrentMonth } from "@/components/layout/current-month";
 import { EmptyState } from "@/components/layout/empty-state";
 import { TransactionRows } from "@/components/transactions/transaction-rows";
 import { useTransactions } from "@/components/transactions/transactions-provider";
 import { monthBudgetSummary } from "@/lib/budgets/progress";
 import { formatDisplayDate } from "@/lib/dates/iso";
-import { singaporeDate, singaporeYearMonth } from "@/lib/dates/month";
+import { formatYearMonth, shiftYearMonth, singaporeDate } from "@/lib/dates/month";
 import { upcomingSchedules } from "@/lib/recurring/schedule";
 import { monthTotals } from "@/lib/transactions/balance";
 import { formatMinorAsSgd } from "@/lib/money/sgd";
+
+const monthButtonClassName =
+  "text-sm font-bold text-ink underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring";
 
 export function HomeDashboard() {
   const { transactions, ready, notice } = useTransactions();
@@ -33,18 +35,35 @@ export function HomeDashboard() {
   const budgetSummary =
     monthKey && budgetsReady ? monthBudgetSummary(budgets, transactions, monthKey) : null;
   const upcoming = today && recurringReady ? upcomingSchedules(schedules, today) : [];
+  const currentMonth = today?.slice(0, 7) ?? null;
+  const viewingCurrent = monthKey !== null && monthKey === currentMonth;
+  const monthLabel = monthKey ? formatYearMonth(monthKey) : "This month";
 
   return (
     <div className="flex flex-col gap-5">
-      <header className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight">Pockie</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Track simply. Spend wisely. Save happily.
-          </p>
-        </div>
-        <CurrentMonth />
+      <header>
+        <h1 className="text-2xl font-extrabold tracking-tight">Pockie</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Track simply. Spend wisely. Save happily.</p>
       </header>
+      <div className="flex items-center justify-between gap-3">
+        <button
+          type="button"
+          className={monthButtonClassName}
+          disabled={!monthKey}
+          onClick={() => monthKey && setMonthKey(shiftYearMonth(monthKey, -1))}
+        >
+          Previous
+        </button>
+        <p className="text-center font-bold">{monthLabel}</p>
+        <button
+          type="button"
+          className={monthButtonClassName}
+          disabled={!monthKey}
+          onClick={() => monthKey && setMonthKey(shiftYearMonth(monthKey, 1))}
+        >
+          Next
+        </button>
+      </div>
 
       {notice ? (
         <p className="rounded-2xl bg-amber-soft px-4 py-3 text-sm font-semibold" role="status">
@@ -71,7 +90,11 @@ export function HomeDashboard() {
         <p className="mt-2 text-4xl font-extrabold tracking-tight">
           {showTotals ? formatMinorAsSgd(totals.remainingMinor) : "—"}
         </p>
-        <p className="mt-2 text-sm leading-6 text-white/90">Income minus spending this month.</p>
+        <p className="mt-2 text-sm leading-6 text-white/90">
+          {viewingCurrent || !monthKey
+            ? "Income minus spending this month."
+            : `Income minus spending in ${monthLabel}.`}
+        </p>
       </section>
 
       <div className="grid grid-cols-2 gap-3">
@@ -107,7 +130,8 @@ export function HomeDashboard() {
             </p>
             <p className="mt-1 text-sm leading-6 text-muted-foreground">
               Spent {formatMinorAsSgd(budgetSummary.spentMinor)} of{" "}
-              {formatMinorAsSgd(budgetSummary.limitMinor)} this month.
+              {formatMinorAsSgd(budgetSummary.limitMinor)}{" "}
+              {viewingCurrent ? "this month." : `in ${monthLabel}.`}
             </p>
             {budgetSummary.overCategories.length === 1 ? (
               <p className="mt-1 text-sm font-semibold">
@@ -122,7 +146,9 @@ export function HomeDashboard() {
           </>
         ) : (
           <p className="mt-1 text-sm leading-6 text-muted-foreground">
-            No budgets yet. A monthly limit shows whether you&apos;re on track.
+            {viewingCurrent || !monthKey
+              ? "No budgets yet. A monthly limit shows whether you're on track."
+              : `No budgets for ${monthLabel}.`}
           </p>
         )}
         <Link
