@@ -15,10 +15,10 @@ export default function HomePage() {
         <CurrentMonth />
       </header>
 
-      <section className="rounded-3xl bg-ink px-5 py-6 text-sky">
+      <section className="rounded-3xl bg-ink px-5 py-6 text-white">
         <h2 className="text-sm font-semibold">Money remaining</h2>
         <p className="mt-2 text-4xl font-extrabold tracking-tight">—</p>
-        <p className="mt-2 text-sm leading-6 text-sky/90">
+        <p className="mt-2 text-sm leading-6 text-white/90">
           Income minus spending. Add a few transactions to see what&apos;s left
           this month.
         </p>

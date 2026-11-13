@@ -46,7 +46,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     aria-current={current ? "page" : undefined}
                     className="flex h-full flex-col items-center justify-end pb-1.5 text-[11px] font-semibold text-ink focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring"
                   >
-                    <span className="absolute top-0 left-1/2 flex size-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-tiger text-ink shadow-md">
+                    <span className="absolute top-0 left-1/2 flex size-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-amber text-ink shadow-md">
                       <Icon aria-hidden="true" className="size-7" />
                     </span>
                     {item.label}

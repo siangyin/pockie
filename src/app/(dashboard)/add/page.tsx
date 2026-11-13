@@ -44,7 +44,7 @@ export default function AddPage() {
                 href={choice.href}
                 className="flex min-h-16 items-center gap-4 rounded-2xl bg-card px-4 py-4 ring-1 ring-border focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring"
               >
-                <span className="flex size-11 items-center justify-center rounded-full bg-amber text-ink">
+                <span className="flex size-11 items-center justify-center rounded-full bg-gold text-ink">
                   <Icon aria-hidden="true" className="size-5" />
                 </span>
                 <span>
