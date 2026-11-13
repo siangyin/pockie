@@ -2,34 +2,29 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useBudgets } from "@/components/budgets/budgets-provider";
 import { CurrentMonth } from "@/components/layout/current-month";
 import { EmptyState } from "@/components/layout/empty-state";
 import { TransactionRows } from "@/components/transactions/transaction-rows";
 import { useTransactions } from "@/components/transactions/transactions-provider";
+import { monthBudgetSummary } from "@/lib/budgets/progress";
+import { singaporeYearMonth } from "@/lib/dates/month";
 import { monthTotals } from "@/lib/transactions/balance";
 import { formatMinorAsSgd } from "@/lib/money/sgd";
 
-function singaporeMonth() {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Singapore",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  })
-    .format(new Date())
-    .slice(0, 7);
-}
-
 export function HomeDashboard() {
   const { transactions, ready, notice } = useTransactions();
+  const { budgets, ready: budgetsReady } = useBudgets();
   const [monthKey, setMonthKey] = useState<string | null>(null);
 
   useEffect(() => {
-    setMonthKey(singaporeMonth());
+    setMonthKey(singaporeYearMonth());
   }, []);
 
   const totals = monthKey ? monthTotals(transactions, monthKey) : null;
   const showTotals = ready && totals;
+  const budgetSummary =
+    monthKey && budgetsReady ? monthBudgetSummary(budgets, transactions, monthKey) : null;
 
   return (
     <div className="flex flex-col gap-5">
@@ -74,9 +69,33 @@ export function HomeDashboard() {
 
       <section className="rounded-2xl bg-card p-4 ring-1 ring-border">
         <h2 className="font-semibold">Budget</h2>
-        <p className="mt-1 text-sm leading-6 text-muted-foreground">
-          No budgets yet. A monthly limit shows whether you&apos;re on track.
-        </p>
+        {budgetSummary && budgetSummary.count > 0 ? (
+          <>
+            <p className="mt-2 text-2xl font-extrabold">
+              {budgetSummary.remainingMinor < 0
+                ? `Over by ${formatMinorAsSgd(Math.abs(budgetSummary.remainingMinor))}`
+                : `${formatMinorAsSgd(budgetSummary.remainingMinor)} left`}
+            </p>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              Spent {formatMinorAsSgd(budgetSummary.spentMinor)} of{" "}
+              {formatMinorAsSgd(budgetSummary.limitMinor)} this month.
+            </p>
+            {budgetSummary.overCategories.length === 1 ? (
+              <p className="mt-1 text-sm font-semibold">
+                {budgetSummary.overCategories[0]} is over budget.
+              </p>
+            ) : null}
+            {budgetSummary.overCategories.length > 1 ? (
+              <p className="mt-1 text-sm font-semibold">
+                {budgetSummary.overCategories.length} categories are over budget.
+              </p>
+            ) : null}
+          </>
+        ) : (
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">
+            No budgets yet. A monthly limit shows whether you&apos;re on track.
+          </p>
+        )}
         <Link
           href="/budgets"
           className="mt-3 inline-flex text-sm font-bold text-ink underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring"

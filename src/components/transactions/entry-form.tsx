@@ -7,34 +7,8 @@ import { AccountSelect } from "@/components/accounts/account-select";
 import { Button } from "@/components/ui/button";
 import { DateField } from "@/components/forms/date-field";
 import { useTransactions } from "@/components/transactions/transactions-provider";
+import { expenseCategories, incomeCategories } from "@/lib/categories";
 import { parseSgdToMinor } from "@/lib/money/sgd";
-
-const expenseCategories = [
-  "Food & Drinks",
-  "Groceries",
-  "Transport",
-  "Shopping",
-  "Housing",
-  "Utilities",
-  "Subscriptions",
-  "Healthcare",
-  "Insurance",
-  "Entertainment",
-  "Travel",
-  "Family",
-  "Other",
-];
-
-const incomeCategories = [
-  "Salary",
-  "Bonus",
-  "Freelance",
-  "Interest",
-  "Dividends",
-  "Gifts",
-  "Refunds",
-  "Other Income",
-];
 
 const fieldClassName =
   "h-12 w-full rounded-xl border border-input bg-card px-3 text-base font-medium";
@@ -42,7 +16,7 @@ const fieldClassName =
 export function EntryForm({ kind }: { kind: "expense" | "income" }) {
   const router = useRouter();
   const expense = kind === "expense";
-  const categories = expense ? expenseCategories : incomeCategories;
+  const categories: readonly string[] = expense ? expenseCategories : incomeCategories;
   const { accounts, ready: accountsReady } = useAccounts();
   const { addTransaction } = useTransactions();
   const [amount, setAmount] = useState("");

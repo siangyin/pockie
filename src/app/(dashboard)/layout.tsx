@@ -1,4 +1,5 @@
 import { AccountsProvider } from "@/components/accounts/accounts-provider";
+import { BudgetsProvider } from "@/components/budgets/budgets-provider";
 import { AppShell } from "@/components/layout/app-shell";
 import { TransactionsProvider } from "@/components/transactions/transactions-provider";
 
@@ -10,7 +11,9 @@ export default function DashboardLayout({
   return (
     <AccountsProvider>
       <TransactionsProvider>
-        <AppShell>{children}</AppShell>
+        <BudgetsProvider>
+          <AppShell>{children}</AppShell>
+        </BudgetsProvider>
       </TransactionsProvider>
     </AccountsProvider>
   );
