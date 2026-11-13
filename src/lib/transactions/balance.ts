@@ -1,4 +1,5 @@
 import type { Account } from "@/lib/accounts/types";
+import { monthBounds } from "@/lib/dates/month";
 import type { Transaction } from "@/lib/transactions/types";
 
 export function movementMinor(account: Account, transaction: Transaction): number {
@@ -31,12 +32,12 @@ export function accountBalanceMinor(account: Account, transactions: Transaction[
   );
 }
 
-export function monthTotals(transactions: Transaction[], yearMonth: string) {
+export function rangeTotals(transactions: Transaction[], start: string, end: string) {
   let incomeMinor = 0;
   let expenseMinor = 0;
 
   for (const transaction of transactions) {
-    if (!transaction.transactionDate.startsWith(yearMonth)) {
+    if (transaction.transactionDate < start || transaction.transactionDate > end) {
       continue;
     }
     if (transaction.type === "income") {
@@ -52,6 +53,11 @@ export function monthTotals(transactions: Transaction[], yearMonth: string) {
     expenseMinor,
     remainingMinor: incomeMinor - expenseMinor,
   };
+}
+
+export function monthTotals(transactions: Transaction[], yearMonth: string) {
+  const bounds = monthBounds(yearMonth);
+  return rangeTotals(transactions, bounds.start, bounds.end);
 }
 
 export function sortTransactions(transactions: Transaction[]): Transaction[] {

@@ -5,11 +5,15 @@ export type CategorySpend = {
   amountMinor: number;
 };
 
-export function categorySpending(transactions: Transaction[], yearMonth: string): CategorySpend[] {
+export function categorySpending(transactions: Transaction[], start: string, end: string): CategorySpend[] {
   const totals = new Map<string, number>();
 
   for (const transaction of transactions) {
-    if (transaction.type !== "expense" || !transaction.transactionDate.startsWith(yearMonth)) {
+    if (
+      transaction.type !== "expense" ||
+      transaction.transactionDate < start ||
+      transaction.transactionDate > end
+    ) {
       continue;
     }
     const category = transaction.category ?? "Other";

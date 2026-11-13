@@ -41,3 +41,23 @@ export function formatYearMonth(yearMonth: string) {
   const name = monthNames[Number(month) - 1];
   return name ? `${name} ${year}` : yearMonth;
 }
+
+export function monthBounds(yearMonth: string) {
+  const [yearText, monthText] = yearMonth.split("-");
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const last = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  return {
+    start: `${yearMonth}-01`,
+    end: `${yearMonth}-${String(last).padStart(2, "0")}`,
+  };
+}
+
+export function isFullMonth(start: string, end: string) {
+  const yearMonth = start.slice(0, 7);
+  if (yearMonth !== end.slice(0, 7)) {
+    return false;
+  }
+  const bounds = monthBounds(yearMonth);
+  return start === bounds.start && end === bounds.end;
+}
