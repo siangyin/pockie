@@ -13,15 +13,17 @@ const monthNames = [
   "December",
 ];
 
-export function singaporeYearMonth() {
+export function singaporeDate() {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Singapore",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  })
-    .format(new Date())
-    .slice(0, 7);
+  }).format(new Date());
+}
+
+export function singaporeYearMonth() {
+  return singaporeDate().slice(0, 7);
 }
 
 export function shiftYearMonth(yearMonth: string, delta: number) {

@@ -6,10 +6,6 @@ const sections = [
     body: "Groups for income and spending. You can rename them later.",
   },
   {
-    title: "Recurring",
-    body: "Regular income and bills, so you don't enter them every time.",
-  },
-  {
     title: "Import / Export",
     body: "Bring in a CSV, or take your transactions with you.",
   },
@@ -41,6 +37,17 @@ export default function SettingsPage() {
             <h2 className="font-semibold">Accounts</h2>
             <p className="mt-1 text-sm leading-6 text-muted-foreground">
               Cash, bank accounts, credit cards and e-wallets.
+            </p>
+          </Link>
+        </li>
+        <li>
+          <Link
+            href="/settings/recurring"
+            className="block rounded-2xl bg-card p-4 ring-1 ring-border focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring"
+          >
+            <h2 className="font-semibold">Recurring</h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              Regular income and bills, added on the due date.
             </p>
           </Link>
         </li>

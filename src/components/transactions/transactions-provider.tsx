@@ -21,6 +21,7 @@ type TransactionsContextValue = {
   notice: string | null;
   addTransaction: (input: TransactionInput, message: string) => void;
   deleteTransaction: (id: string) => void;
+  recordGenerated: (additions: Transaction[]) => void;
 };
 
 const TransactionsContext = createContext<TransactionsContextValue | null>(null);
@@ -59,6 +60,8 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
           transactionDate: input.transactionDate,
           merchant: input.merchant?.trim() ?? "",
           notes: input.notes?.trim() ?? "",
+          recurringId: null,
+          occurrenceDate: null,
           createdAt: now,
           updatedAt: now,
         };
@@ -68,6 +71,27 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
         commit(
           transactions.filter((transaction) => transaction.id !== id),
           "Transaction deleted.",
+        );
+      },
+      recordGenerated(additions) {
+        if (additions.length === 0) {
+          return;
+        }
+        const stored = readTransactions();
+        const seen = new Set(
+          stored
+            .filter((transaction) => transaction.recurringId && transaction.occurrenceDate)
+            .map((transaction) => `${transaction.recurringId}|${transaction.occurrenceDate}`),
+        );
+        const fresh = additions.filter(
+          (transaction) => !seen.has(`${transaction.recurringId}|${transaction.occurrenceDate}`),
+        );
+        if (fresh.length === 0) {
+          return;
+        }
+        commit(
+          [...fresh, ...stored],
+          fresh.length === 1 ? "Recurring payment added." : "Recurring payments added.",
         );
       },
     };

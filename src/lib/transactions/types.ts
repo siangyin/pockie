@@ -13,6 +13,8 @@ export type Transaction = {
   transactionDate: string;
   merchant: string;
   notes: string;
+  recurringId: string | null;
+  occurrenceDate: string | null;
   createdAt: string;
   updatedAt: string;
 };

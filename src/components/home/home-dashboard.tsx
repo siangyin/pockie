@@ -3,28 +3,36 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useBudgets } from "@/components/budgets/budgets-provider";
+import { useRecurring } from "@/components/recurring/recurring-provider";
 import { CurrentMonth } from "@/components/layout/current-month";
 import { EmptyState } from "@/components/layout/empty-state";
 import { TransactionRows } from "@/components/transactions/transaction-rows";
 import { useTransactions } from "@/components/transactions/transactions-provider";
 import { monthBudgetSummary } from "@/lib/budgets/progress";
-import { singaporeYearMonth } from "@/lib/dates/month";
+import { formatDisplayDate } from "@/lib/dates/iso";
+import { singaporeDate, singaporeYearMonth } from "@/lib/dates/month";
+import { upcomingSchedules } from "@/lib/recurring/schedule";
 import { monthTotals } from "@/lib/transactions/balance";
 import { formatMinorAsSgd } from "@/lib/money/sgd";
 
 export function HomeDashboard() {
   const { transactions, ready, notice } = useTransactions();
   const { budgets, ready: budgetsReady } = useBudgets();
+  const { schedules, ready: recurringReady } = useRecurring();
   const [monthKey, setMonthKey] = useState<string | null>(null);
+  const [today, setToday] = useState<string | null>(null);
 
   useEffect(() => {
-    setMonthKey(singaporeYearMonth());
+    const date = singaporeDate();
+    setToday(date);
+    setMonthKey(date.slice(0, 7));
   }, []);
 
   const totals = monthKey ? monthTotals(transactions, monthKey) : null;
   const showTotals = ready && totals;
   const budgetSummary =
     monthKey && budgetsReady ? monthBudgetSummary(budgets, transactions, monthKey) : null;
+  const upcoming = today && recurringReady ? upcomingSchedules(schedules, today) : [];
 
   return (
     <div className="flex flex-col gap-5">
@@ -41,6 +49,20 @@ export function HomeDashboard() {
       {notice ? (
         <p className="rounded-2xl bg-amber-soft px-4 py-3 text-sm font-semibold" role="status">
           {notice}
+        </p>
+      ) : null}
+
+      {upcoming.length > 0 ? (
+        <p className="rounded-2xl bg-amber-soft px-4 py-3 text-sm leading-6">
+          {upcoming.length === 1
+            ? `${upcoming[0].schedule.category} is due on ${formatDisplayDate(upcoming[0].nextDate)}.`
+            : `${upcoming.length} payments are due within 7 days.`}{" "}
+          <Link
+            href="/settings/recurring"
+            className="font-bold text-ink underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring"
+          >
+            View schedules
+          </Link>
         </p>
       ) : null}
 
@@ -66,6 +88,13 @@ export function HomeDashboard() {
           </p>
         </article>
       </div>
+
+      <Link
+        href="/reports"
+        className="text-sm font-bold text-ink underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring"
+      >
+        See spending
+      </Link>
 
       <section className="rounded-2xl bg-card p-4 ring-1 ring-border">
         <h2 className="font-semibold">Budget</h2>

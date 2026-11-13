@@ -33,7 +33,13 @@ export function readTransactions(): Transaction[] {
       return [];
     }
 
-    return parsed.filter(isTransaction);
+    return parsed.filter(isTransaction).map((transaction) => ({
+      ...transaction,
+      merchant: transaction.merchant ?? "",
+      notes: transaction.notes ?? "",
+      recurringId: typeof transaction.recurringId === "string" ? transaction.recurringId : null,
+      occurrenceDate: typeof transaction.occurrenceDate === "string" ? transaction.occurrenceDate : null,
+    }));
   } catch {
     return [];
   }

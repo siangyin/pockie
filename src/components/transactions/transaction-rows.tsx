@@ -4,15 +4,8 @@ import { useAccounts } from "@/components/accounts/accounts-provider";
 import { useTransactions } from "@/components/transactions/transactions-provider";
 import { sortTransactions } from "@/lib/transactions/balance";
 import type { Transaction } from "@/lib/transactions/types";
+import { formatDisplayDate } from "@/lib/dates/iso";
 import { formatMinorAsSgd } from "@/lib/money/sgd";
-
-function formatDate(value: string) {
-  const [year, month, day] = value.split("-");
-  if (!year || !month || !day) {
-    return value;
-  }
-  return `${day}/${month}/${year}`;
-}
 
 function amountLabel(transaction: Transaction) {
   const amount = formatMinorAsSgd(transaction.amountMinor);
@@ -53,7 +46,7 @@ export function TransactionRows({ limit }: { limit?: number }) {
         const detail =
           transaction.type === "transfer"
             ? `${account?.name ?? "Account"} to ${other?.name ?? "Account"}`
-            : `${account?.name ?? "Account"} · ${formatDate(transaction.transactionDate)}`;
+            : `${account?.name ?? "Account"} · ${formatDisplayDate(transaction.transactionDate)}${transaction.recurringId ? " · Recurring" : ""}`;
 
         return (
           <li
