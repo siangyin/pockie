@@ -9,6 +9,7 @@ import { AccountSelect } from "@/components/accounts/account-select";
 import { Button } from "@/components/ui/button";
 import { DateField } from "@/components/forms/date-field";
 import { useTransactions } from "@/components/transactions/transactions-provider";
+import type { AdjustmentDirection } from "@/lib/transactions/types";
 import { namesFor } from "@/lib/categories";
 import { isIsoDate } from "@/lib/dates/iso";
 import { minorToInput, parseSgdToMinor } from "@/lib/money/sgd";
@@ -56,6 +57,7 @@ function TransactionFields({ transactionId }: { transactionId: string }) {
   const [toAccountId, setToAccountId] = useState(transaction?.counterAccountId ?? "");
   const [merchant, setMerchant] = useState(transaction?.merchant ?? "");
   const [notes, setNotes] = useState(transaction?.notes ?? "");
+  const [direction, setDirection] = useState<AdjustmentDirection>(transaction?.direction === "down" ? "down" : "up");
   const [error, setError] = useState("");
 
   if (!transaction) {
@@ -64,14 +66,22 @@ function TransactionFields({ transactionId }: { transactionId: string }) {
 
   const current = transaction;
   const transfer = current.type === "transfer";
+  const adjustment = current.type === "adjustment";
   const categories =
-    current.type === "transfer"
+    transfer || adjustment
       ? []
       : namesFor(savedCategories, current.type === "income" ? "income" : "expense", category);
   const active = accounts.filter((account) => !account.isArchived);
+  const selectedAccount = accounts.find((account) => account.id === accountId);
   const fieldId = `edit-${current.id}`;
   const typeLabel =
-    current.type === "income" ? "Income" : current.type === "expense" ? "Expense" : "Transfer";
+    current.type === "income"
+      ? "Income"
+      : current.type === "expense"
+        ? "Expense"
+        : adjustment
+          ? "Adjustment"
+          : "Transfer";
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -84,7 +94,7 @@ function TransactionFields({ transactionId }: { transactionId: string }) {
       setError("Enter an amount above 0, such as 12.50.");
       return;
     }
-    if (!transfer && !categories.some((item) => item === category)) {
+    if (!transfer && !adjustment && !categories.some((item) => item === category)) {
       setError("Choose a category.");
       return;
     }
@@ -105,11 +115,12 @@ function TransactionFields({ transactionId }: { transactionId: string }) {
       type: current.type,
       accountId: account.id,
       counterAccountId: transfer ? other?.id : null,
-      category: transfer ? null : category,
+      category: transfer || adjustment ? null : category,
       amountMinor: minor,
       transactionDate: date,
-      merchant,
+      merchant: adjustment ? "" : merchant,
       notes,
+      direction: adjustment ? direction : null,
     });
     router.push("/transactions");
   }
@@ -122,9 +133,11 @@ function TransactionFields({ transactionId }: { transactionId: string }) {
       <header className="mt-3 mb-5">
         <h1 className="text-2xl font-extrabold tracking-tight">Edit {typeLabel.toLowerCase()}</h1>
         <p className="mt-1 text-sm leading-6 text-muted-foreground">
-          {current.recurringId
-            ? "This payment came from a schedule. Changing it does not change the schedule."
-            : "Update the amount, account, or date. The type stays the same."}
+          {adjustment
+            ? "This changes the account balance only. It is not income or spending."
+            : current.recurringId
+              ? "This payment came from a schedule. Changing it does not change the schedule."
+              : "Update the amount, account, or date. The type stays the same."}
         </p>
       </header>
       <form className="grid gap-4" onSubmit={handleSubmit} noValidate>
@@ -138,7 +151,25 @@ function TransactionFields({ transactionId }: { transactionId: string }) {
             className={fieldClassName}
           />
         </label>
-        {transfer ? null : (
+        {adjustment ? (
+          <label htmlFor={`${fieldId}-direction`} className="grid gap-1.5 text-sm font-semibold">
+            Effect
+            <select
+              id={`${fieldId}-direction`}
+              value={direction}
+              onChange={(event) => setDirection(event.target.value === "down" ? "down" : "up")}
+              className={fieldClassName}
+            >
+              <option value="up">
+                {selectedAccount?.accountType === "credit_card" ? "Increase the amount owed" : "Increase the balance"}
+              </option>
+              <option value="down">
+                {selectedAccount?.accountType === "credit_card" ? "Decrease the amount owed" : "Decrease the balance"}
+              </option>
+            </select>
+          </label>
+        ) : null}
+        {transfer || adjustment ? null : (
           <label htmlFor={`${fieldId}-category`} className="grid gap-1.5 text-sm font-semibold">
             Category
             <select
@@ -168,7 +199,21 @@ function TransactionFields({ transactionId }: { transactionId: string }) {
           <AccountSelect id={`${fieldId}-to`} label="To" value={toAccountId} onChange={setToAccountId} />
         ) : null}
         <DateField id={`${fieldId}-date`} label="Date" defaultDate={current.transactionDate} />
-        {transfer ? null : (
+        {transfer ? null : adjustment ? (
+          <label htmlFor={`${fieldId}-notes`} className="grid gap-1.5 text-sm font-semibold">
+            <span>
+              Notes
+              <span className="font-medium text-muted-foreground"> (optional)</span>
+            </span>
+            <textarea
+              id={`${fieldId}-notes`}
+              rows={3}
+              value={notes}
+              onChange={(event) => setNotes(event.target.value)}
+              className="w-full rounded-xl border border-input bg-card px-3 py-3 text-base font-medium"
+            />
+          </label>
+        ) : (
           <>
             <label htmlFor={`${fieldId}-merchant`} className="grid gap-1.5 text-sm font-semibold">
               <span>

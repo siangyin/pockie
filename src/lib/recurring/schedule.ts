@@ -116,6 +116,7 @@ export function dueTransactions(
         transactionDate: date,
         merchant: schedule.merchant,
         notes: schedule.notes,
+        direction: null,
         recurringId: schedule.id,
         occurrenceDate: date,
         createdAt: now,

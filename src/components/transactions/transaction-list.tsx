@@ -72,7 +72,14 @@ export function TransactionList() {
       }
       const account = accounts.find((item) => item.id === transaction.accountId);
       const other = accounts.find((item) => item.id === transaction.counterAccountId);
-      const haystack = [transaction.category, transaction.merchant, transaction.notes, account?.name, other?.name]
+      const haystack = [
+        transaction.category,
+        transaction.merchant,
+        transaction.notes,
+        transaction.type === "adjustment" ? "adjustment" : "",
+        account?.name,
+        other?.name,
+      ]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
@@ -96,7 +103,7 @@ export function TransactionList() {
       <header className="mb-2">
         <h1 className="text-2xl font-extrabold tracking-tight">Transactions</h1>
         <p className="mt-1 text-sm leading-6 text-muted-foreground">
-          Income, spending and transfers show up here.
+          Income, spending, transfers and statement adjustments show up here.
         </p>
       </header>
       {notice ? (
@@ -138,6 +145,7 @@ export function TransactionList() {
                   <option value="expense">Expenses</option>
                   <option value="income">Income</option>
                   <option value="transfer">Transfers</option>
+                  <option value="adjustment">Adjustments</option>
                 </select>
               </label>
               <label htmlFor="txn-order" className="grid gap-1.5 text-sm font-semibold">

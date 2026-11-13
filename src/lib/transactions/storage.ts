@@ -1,4 +1,4 @@
-import { isTransactionType, type Transaction } from "@/lib/transactions/types";
+import { isTransactionType, type AdjustmentDirection, type Transaction } from "@/lib/transactions/types";
 
 const storageKey = "pockie.transactions";
 
@@ -17,8 +17,22 @@ function isTransaction(value: unknown): value is Transaction {
     Number.isInteger(transaction.amountMinor) &&
     transaction.amountMinor > 0 &&
     transaction.currency === "SGD" &&
-    typeof transaction.transactionDate === "string"
+    typeof transaction.transactionDate === "string" &&
+    (transaction.direction === undefined ||
+      transaction.direction === null ||
+      transaction.direction === "up" ||
+      transaction.direction === "down") &&
+    (transaction.type !== "adjustment" ||
+      transaction.direction === "up" ||
+      transaction.direction === "down")
   );
+}
+
+function directionOf(transaction: Transaction): AdjustmentDirection | null {
+  if (transaction.type !== "adjustment") {
+    return null;
+  }
+  return transaction.direction === "down" ? "down" : "up";
 }
 
 export function readTransactions(): Transaction[] {
@@ -37,6 +51,7 @@ export function readTransactions(): Transaction[] {
       ...transaction,
       merchant: transaction.merchant ?? "",
       notes: transaction.notes ?? "",
+      direction: directionOf(transaction),
       recurringId: typeof transaction.recurringId === "string" ? transaction.recurringId : null,
       occurrenceDate: typeof transaction.occurrenceDate === "string" ? transaction.occurrenceDate : null,
     }));

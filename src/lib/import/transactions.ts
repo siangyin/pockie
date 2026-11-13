@@ -1,7 +1,7 @@
 import { isIsoDate } from "@/lib/dates/iso";
 import { parseSgdToMinor } from "@/lib/money/sgd";
 import type { Account } from "@/lib/accounts/types";
-import { isTransactionType, type Transaction, type TransactionType } from "@/lib/transactions/types";
+import type { AdjustmentDirection, Transaction, TransactionType } from "@/lib/transactions/types";
 import type { TransactionInput } from "@/components/transactions/transactions-provider";
 
 export const importFields = [
@@ -99,6 +99,7 @@ export function duplicateKey(input: {
   accountId: string;
   category?: string | null;
   counterAccountId?: string | null;
+  direction?: AdjustmentDirection | null;
 }) {
   return [
     input.type,
@@ -107,7 +108,21 @@ export function duplicateKey(input: {
     input.accountId,
     input.category ?? "",
     input.counterAccountId ?? "",
+    input.direction ?? "",
   ].join("|");
+}
+
+function parseImportedType(value: string): { type: TransactionType; direction: AdjustmentDirection | null } | null {
+  if (value === "income" || value === "expense" || value === "transfer") {
+    return { type: value, direction: null };
+  }
+  if (value === "adjustment" || value === "adjustment up") {
+    return { type: "adjustment", direction: "up" };
+  }
+  if (value === "adjustment down") {
+    return { type: "adjustment", direction: "down" };
+  }
+  return null;
 }
 
 export function previewImport(
@@ -129,6 +144,7 @@ export function previewImport(
     const accountValue = cell(row, headers, mapping.account);
     const toValue = cell(row, headers, mapping.toAccount);
     const date = parseDate(dateValue);
+    const imported = parseImportedType(typeValue);
     const minor = parseSgdToMinor(amountValue);
     const account = active.find((item) => item.name.toLowerCase() === accountValue.toLowerCase());
     const other = active.find((item) => item.name.toLowerCase() === toValue.toLowerCase());
@@ -138,35 +154,40 @@ export function previewImport(
       message = "Map date, type, amount, and account.";
     } else if (!date) {
       message = "Use a date such as 2026-11-13 or 13/11/2026.";
-    } else if (!isTransactionType(typeValue)) {
-      message = "Use expense, income, or transfer.";
+    } else if (!imported) {
+      message = "Use expense, income, transfer, or adjustment.";
     } else if (minor === null || minor <= 0) {
       message = "Enter an amount above 0, such as 12.50.";
     } else if (!account) {
       message = "Use the name of an active account.";
-    } else if (typeValue === "transfer" && (!other || other.id === account.id)) {
+    } else if (imported.type === "transfer" && (!other || other.id === account.id)) {
       message = "A transfer needs two different accounts.";
     } else if (
-      typeValue !== "transfer" &&
-      !canonicalCategory(typeValue === "income" ? categories.income : categories.expense, categoryValue)
+      imported.type !== "transfer" &&
+      imported.type !== "adjustment" &&
+      !canonicalCategory(imported.type === "income" ? categories.income : categories.expense, categoryValue)
     ) {
       message = "Use a Pockie category, such as Groceries.";
     }
 
-    if (message) {
-      return { line: index + 2, status: "invalid", message, input: null };
+    if (message || !imported || !account || minor === null || !date) {
+      return { line: index + 2, status: "invalid", message: message || "Check this row.", input: null };
     }
 
-    const type = typeValue as TransactionType;
+    const type = imported.type;
     const input: TransactionInput = {
       type,
       accountId: account!.id,
       counterAccountId: type === "transfer" ? other!.id : null,
-      category: type === "transfer" ? null : canonicalCategory(type === "income" ? categories.income : categories.expense, categoryValue),
+      category:
+        type === "transfer" || type === "adjustment"
+          ? null
+          : canonicalCategory(type === "income" ? categories.income : categories.expense, categoryValue),
       amountMinor: minor!,
       transactionDate: date!,
       merchant: cell(row, headers, mapping.merchant),
       notes: cell(row, headers, mapping.notes),
+      direction: imported.direction,
     };
     const key = duplicateKey(input);
     if (seen.has(key)) {

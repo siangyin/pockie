@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import type { Transaction, TransactionType } from "@/lib/transactions/types";
+import type { AdjustmentDirection, Transaction, TransactionType } from "@/lib/transactions/types";
 import { readTransactions, writeTransactions } from "@/lib/transactions/storage";
 
 export type TransactionInput = {
@@ -13,7 +13,15 @@ export type TransactionInput = {
   transactionDate: string;
   merchant?: string;
   notes?: string;
+  direction?: AdjustmentDirection | null;
 };
+
+function storedDirection(input: TransactionInput): AdjustmentDirection | null {
+  if (input.type !== "adjustment") {
+    return null;
+  }
+  return input.direction === "down" ? "down" : "up";
+}
 
 type TransactionsContextValue = {
   transactions: Transaction[];
@@ -63,6 +71,7 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
           transactionDate: input.transactionDate,
           merchant: input.merchant?.trim() ?? "",
           notes: input.notes?.trim() ?? "",
+          direction: storedDirection(input),
           recurringId: null,
           occurrenceDate: null,
           createdAt: now,
@@ -84,6 +93,7 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
                   transactionDate: input.transactionDate,
                   merchant: input.merchant?.trim() ?? "",
                   notes: input.notes?.trim() ?? "",
+                  direction: storedDirection(input),
                   updatedAt: now,
                 }
               : transaction,
@@ -154,6 +164,7 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
           transactionDate: input.transactionDate,
           merchant: input.merchant?.trim() ?? "",
           notes: input.notes?.trim() ?? "",
+          direction: storedDirection(input),
           recurringId: null,
           occurrenceDate: null,
           createdAt: now,

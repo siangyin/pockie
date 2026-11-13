@@ -177,6 +177,9 @@ function AccountEditor({ existing }: { existing?: Account }) {
             Current opening balance: {formatMinorAsSgd(existing.openingBalanceMinor)}. Archiving
             hides the account without deleting it.
           </p>
+          <Link href={`/settings/accounts/${existing.id}/reconcile`} className={`mt-3 inline-block ${backClassName}`}>
+            Reconcile with a statement
+          </Link>
           {existing.isArchived ? (
             <Button
               type="button"

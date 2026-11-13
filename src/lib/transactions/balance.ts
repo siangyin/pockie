@@ -22,7 +22,21 @@ export function movementMinor(account: Account, transaction: Transaction): numbe
     return card ? -amount : amount;
   }
 
+  if (transaction.type === "adjustment" && transaction.accountId === account.id) {
+    return transaction.direction === "down" ? -amount : amount;
+  }
+
   return 0;
+}
+
+export function accountBalanceAsOf(account: Account, transactions: Transaction[], asOf: string): number {
+  const opening = account.openingBalanceDate <= asOf ? account.openingBalanceMinor : 0;
+  return transactions.reduce((balance, transaction) => {
+    if (transaction.transactionDate > asOf) {
+      return balance;
+    }
+    return balance + movementMinor(account, transaction);
+  }, opening);
 }
 
 export function accountBalanceMinor(account: Account, transactions: Transaction[]): number {

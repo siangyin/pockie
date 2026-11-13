@@ -21,7 +21,9 @@ export function transactionsCsv(transactions: Transaction[], accounts: Account[]
     ["date", "type", "amount", "category", "account", "to_account", "merchant", "notes"],
     ...ordered.map((transaction) => [
       transaction.transactionDate,
-      transaction.type,
+      transaction.type === "adjustment"
+        ? `adjustment ${transaction.direction === "down" ? "down" : "up"}`
+        : transaction.type,
       minorToInput(transaction.amountMinor),
       transaction.category ?? "",
       accountName(accounts, transaction.accountId),

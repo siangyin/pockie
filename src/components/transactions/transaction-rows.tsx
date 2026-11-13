@@ -19,12 +19,18 @@ function amountLabel(transaction: Transaction) {
   if (transaction.type === "expense") {
     return `−${amount}`;
   }
+  if (transaction.type === "adjustment") {
+    return transaction.direction === "down" ? `−${amount}` : `+${amount}`;
+  }
   return amount;
 }
 
 function titleFor(transaction: Transaction) {
   if (transaction.type === "transfer") {
     return "Transfer";
+  }
+  if (transaction.type === "adjustment") {
+    return "Adjustment";
   }
   return transaction.category ?? "Transaction";
 }
@@ -64,6 +70,9 @@ export function TransactionRows({ items, limit }: { items?: Transaction[]; limit
                 <p className="mt-0.5 text-sm text-muted-foreground">{detail}</p>
                 {transaction.merchant ? (
                   <p className="mt-0.5 text-sm text-muted-foreground">{transaction.merchant}</p>
+                ) : null}
+                {transaction.type === "adjustment" && transaction.notes ? (
+                  <p className="mt-0.5 text-sm text-muted-foreground">{transaction.notes}</p>
                 ) : null}
               </div>
               <p className="font-extrabold">{amountLabel(transaction)}</p>
