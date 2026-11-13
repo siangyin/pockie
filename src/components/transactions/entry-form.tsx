@@ -4,12 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAccounts } from "@/components/accounts/accounts-provider";
 import { usePreferredAccount } from "@/components/accounts/use-preferred-account";
+import { useCategories } from "@/components/categories/categories-provider";
 import { AccountSelect } from "@/components/accounts/account-select";
 import { Button } from "@/components/ui/button";
 import { DateField } from "@/components/forms/date-field";
 import { useTransactions } from "@/components/transactions/transactions-provider";
 import { rememberAccount } from "@/lib/accounts/last-used";
-import { expenseCategories, incomeCategories } from "@/lib/categories";
+import { namesFor } from "@/lib/categories";
 import { parseSgdToMinor } from "@/lib/money/sgd";
 
 const fieldClassName =
@@ -18,7 +19,8 @@ const fieldClassName =
 export function EntryForm({ kind }: { kind: "expense" | "income" }) {
   const router = useRouter();
   const expense = kind === "expense";
-  const categories: readonly string[] = expense ? expenseCategories : incomeCategories;
+  const { categories, ready: categoriesReady } = useCategories();
+  const categoryNames = namesFor(categories, expense ? "expense" : "income");
   const { accounts, ready: accountsReady } = useAccounts();
   const { addTransaction } = useTransactions();
   const [amount, setAmount] = useState("");
@@ -28,7 +30,7 @@ export function EntryForm({ kind }: { kind: "expense" | "income" }) {
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
   const active = accounts.filter((account) => !account.isArchived);
-  const canSave = accountsReady && active.length > 0;
+  const canSave = accountsReady && categoriesReady && active.length > 0 && categoryNames.length > 0;
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -40,7 +42,7 @@ export function EntryForm({ kind }: { kind: "expense" | "income" }) {
       setError("Enter an amount above 0, such as 12.50.");
       return;
     }
-    if (!categories.includes(category)) {
+    if (!categoryNames.includes(category)) {
       setError("Choose a category.");
       return;
     }
@@ -99,7 +101,7 @@ export function EntryForm({ kind }: { kind: "expense" | "income" }) {
           <option value="" disabled>
             Choose a category
           </option>
-          {categories.map((item) => (
+          {categoryNames.map((item) => (
             <option key={item} value={item}>
               {item}
             </option>
@@ -145,9 +147,14 @@ export function EntryForm({ kind }: { kind: "expense" | "income" }) {
       <Button type="submit" className="h-12 w-full text-base" disabled={!canSave}>
         {expense ? "Save expense" : "Save income"}
       </Button>
-      {!canSave ? (
+      {accountsReady && categoriesReady && active.length === 0 ? (
         <p className="text-sm leading-6 text-muted-foreground">
           Add an account in Settings before saving.
+        </p>
+      ) : null}
+      {accountsReady && categoriesReady && active.length > 0 && categoryNames.length === 0 ? (
+        <p className="text-sm leading-6 text-muted-foreground">
+          Add a category in Settings before saving.
         </p>
       ) : null}
     </form>

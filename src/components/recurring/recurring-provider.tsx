@@ -27,6 +27,7 @@ type RecurringContextValue = {
   saveSchedule: (input: ScheduleInput, id?: string) => void;
   setPaused: (id: string, isPaused: boolean) => void;
   deleteSchedule: (id: string) => void;
+  replaceCategoryName: (type: "expense" | "income", from: string, to: string) => void;
 };
 
 const RecurringContext = createContext<RecurringContextValue | null>(null);
@@ -123,6 +124,26 @@ export function RecurringProvider({ children }: { children: React.ReactNode }) {
           schedules.filter((schedule) => schedule.id !== id),
           "Schedule deleted.",
         );
+      },
+      replaceCategoryName(type, from, to) {
+        if (from === to) {
+          return;
+        }
+        const now = new Date().toISOString();
+        const stored = readSchedules();
+        let changed = false;
+        const next = stored.map((schedule) => {
+          if (schedule.type !== type || schedule.category !== from) {
+            return schedule;
+          }
+          changed = true;
+          return { ...schedule, category: to, updatedAt: now };
+        });
+        if (!changed) {
+          return;
+        }
+        writeSchedules(next);
+        setSchedules(next);
       },
     };
   }, [notice, ready, schedules, today]);

@@ -4,11 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAccounts } from "@/components/accounts/accounts-provider";
+import { useCategories } from "@/components/categories/categories-provider";
 import { AccountSelect } from "@/components/accounts/account-select";
 import { Button } from "@/components/ui/button";
 import { DateField } from "@/components/forms/date-field";
 import { useTransactions } from "@/components/transactions/transactions-provider";
-import { expenseCategories, incomeCategories } from "@/lib/categories";
+import { namesFor } from "@/lib/categories";
 import { isIsoDate } from "@/lib/dates/iso";
 import { minorToInput, parseSgdToMinor } from "@/lib/money/sgd";
 
@@ -46,6 +47,7 @@ export function TransactionEditor({ transactionId }: { transactionId: string }) 
 function TransactionFields({ transactionId }: { transactionId: string }) {
   const router = useRouter();
   const { accounts, ready: accountsReady } = useAccounts();
+  const { categories: savedCategories } = useCategories();
   const { transactions, updateTransaction } = useTransactions();
   const transaction = transactions.find((item) => item.id === transactionId);
   const [amount, setAmount] = useState(transaction ? minorToInput(transaction.amountMinor) : "");
@@ -62,7 +64,10 @@ function TransactionFields({ transactionId }: { transactionId: string }) {
 
   const current = transaction;
   const transfer = current.type === "transfer";
-  const categories = current.type === "income" ? incomeCategories : expenseCategories;
+  const categories =
+    current.type === "transfer"
+      ? []
+      : namesFor(savedCategories, current.type === "income" ? "income" : "expense", category);
   const active = accounts.filter((account) => !account.isArchived);
   const fieldId = `edit-${current.id}`;
   const typeLabel =

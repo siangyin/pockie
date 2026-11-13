@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useBudgets } from "@/components/budgets/budgets-provider";
+import { useCategories } from "@/components/categories/categories-provider";
 import { Button } from "@/components/ui/button";
-import { expenseCategories, isExpenseCategory } from "@/lib/categories";
+import { namesFor } from "@/lib/categories";
 import { formatYearMonth, shiftYearMonth, singaporeYearMonth } from "@/lib/dates/month";
 import { spentMinor } from "@/lib/budgets/progress";
 import { formatMinorAsSgd, minorToInput, parseSgdToMinor } from "@/lib/money/sgd";
@@ -55,6 +56,8 @@ export function BudgetBoard() {
 
 function BudgetMonth({ yearMonth }: { yearMonth: string }) {
   const { budgets, ready, notice, saveBudget, deleteBudget } = useBudgets();
+  const { categories: savedCategories, ready: categoriesReady } = useCategories();
+  const categoryNames = namesFor(savedCategories, "expense");
   const { transactions } = useTransactions();
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
@@ -72,7 +75,7 @@ function BudgetMonth({ yearMonth }: { yearMonth: string }) {
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const minor = parseSgdToMinor(amount);
-    if (!isExpenseCategory(category)) {
+    if (!categoryNames.includes(category)) {
       setError("Choose a category.");
       return;
     }
@@ -104,7 +107,7 @@ function BudgetMonth({ yearMonth }: { yearMonth: string }) {
             <option value="" disabled>
               Choose a category
             </option>
-            {expenseCategories.map((item) => (
+            {categoryNames.map((item) => (
               <option key={item} value={item}>
                 {item}
               </option>
@@ -126,7 +129,7 @@ function BudgetMonth({ yearMonth }: { yearMonth: string }) {
           Choosing a category you already budgeted fills in its limit so you can change it.
         </p>
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
-        <Button type="submit" className="h-12 w-full text-base" disabled={!ready}>
+        <Button type="submit" className="h-12 w-full text-base" disabled={!ready || !categoriesReady}>
           {existing ? "Update budget" : "Save budget"}
         </Button>
       </form>

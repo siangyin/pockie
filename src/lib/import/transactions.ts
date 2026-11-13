@@ -1,4 +1,3 @@
-import { expenseCategories, incomeCategories } from "@/lib/categories";
 import { isIsoDate } from "@/lib/dates/iso";
 import { parseSgdToMinor } from "@/lib/money/sgd";
 import type { Account } from "@/lib/accounts/types";
@@ -89,9 +88,8 @@ function parseDate(value: string) {
   return isIsoDate(iso) ? iso : null;
 }
 
-function canonicalCategory(type: TransactionType, value: string) {
-  const list = type === "income" ? incomeCategories : expenseCategories;
-  return list.find((category) => category.toLowerCase() === value.toLowerCase()) ?? null;
+function canonicalCategory(names: readonly string[], value: string) {
+  return names.find((category) => category.toLowerCase() === value.toLowerCase()) ?? null;
 }
 
 export function duplicateKey(input: {
@@ -118,6 +116,7 @@ export function previewImport(
   mapping: ImportMapping,
   accounts: Account[],
   transactions: Transaction[],
+  categories: { expense: readonly string[]; income: readonly string[] },
 ): ImportRow[] {
   const active = accounts.filter((account) => !account.isArchived);
   const seen = new Set(transactions.map((transaction) => duplicateKey(transaction)));
@@ -147,7 +146,10 @@ export function previewImport(
       message = "Use the name of an active account.";
     } else if (typeValue === "transfer" && (!other || other.id === account.id)) {
       message = "A transfer needs two different accounts.";
-    } else if (typeValue !== "transfer" && !canonicalCategory(typeValue, categoryValue)) {
+    } else if (
+      typeValue !== "transfer" &&
+      !canonicalCategory(typeValue === "income" ? categories.income : categories.expense, categoryValue)
+    ) {
       message = "Use a Pockie category, such as Groceries.";
     }
 
@@ -160,7 +162,7 @@ export function previewImport(
       type,
       accountId: account!.id,
       counterAccountId: type === "transfer" ? other!.id : null,
-      category: type === "transfer" ? null : canonicalCategory(type, categoryValue),
+      category: type === "transfer" ? null : canonicalCategory(type === "income" ? categories.income : categories.expense, categoryValue),
       amountMinor: minor!,
       transactionDate: date!,
       merchant: cell(row, headers, mapping.merchant),

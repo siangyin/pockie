@@ -2,10 +2,6 @@ import Link from "next/link";
 
 const sections = [
   {
-    title: "Categories",
-    body: "Groups for income and spending. You can rename them later.",
-  },
-  {
     title: "Preferences",
     body: "Singapore dollars, and dates in Asia/Singapore.",
   },
@@ -21,7 +17,7 @@ export default function SettingsPage() {
       <header className="mb-5">
         <h1 className="text-2xl font-extrabold tracking-tight">Settings</h1>
         <p className="mt-1 text-sm leading-6 text-muted-foreground">
-          Start with your accounts. Categories and the rest follow.
+          Accounts, categories, and your data stay on this device.
         </p>
       </header>
       <ul className="grid gap-3">
@@ -44,6 +40,17 @@ export default function SettingsPage() {
             <h2 className="font-semibold">Recurring</h2>
             <p className="mt-1 text-sm leading-6 text-muted-foreground">
               Regular income and bills, added on the due date.
+            </p>
+          </Link>
+        </li>
+        <li>
+          <Link
+            href="/settings/categories"
+            className="block rounded-2xl bg-card p-4 ring-1 ring-border focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring"
+          >
+            <h2 className="font-semibold">Categories</h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              Groups for spending and income. Add your own, or rename the ones you have.
             </p>
           </Link>
         </li>

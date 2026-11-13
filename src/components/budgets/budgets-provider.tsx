@@ -10,6 +10,7 @@ type BudgetsContextValue = {
   notice: string | null;
   saveBudget: (category: string, yearMonth: string, limitMinor: number) => void;
   deleteBudget: (id: string) => void;
+  replaceCategoryName: (from: string, to: string) => void;
 };
 
 const BudgetsContext = createContext<BudgetsContextValue | null>(null);
@@ -67,6 +68,26 @@ export function BudgetsProvider({ children }: { children: React.ReactNode }) {
           budgets.filter((budget) => budget.id !== id),
           "Budget deleted.",
         );
+      },
+      replaceCategoryName(from, to) {
+        if (from === to) {
+          return;
+        }
+        const now = new Date().toISOString();
+        const stored = readBudgets();
+        let changed = false;
+        const next = stored.map((budget) => {
+          if (budget.category !== from) {
+            return budget;
+          }
+          changed = true;
+          return { ...budget, category: to, updatedAt: now };
+        });
+        if (!changed) {
+          return;
+        }
+        writeBudgets(next);
+        setBudgets(next);
       },
     };
   }, [budgets, notice, ready]);

@@ -24,6 +24,7 @@ type TransactionsContextValue = {
   deleteTransaction: (id: string) => void;
   recordGenerated: (additions: Transaction[]) => void;
   importTransactions: (inputs: TransactionInput[]) => void;
+  replaceCategoryName: (type: "expense" | "income", from: string, to: string) => void;
 };
 
 const TransactionsContext = createContext<TransactionsContextValue | null>(null);
@@ -116,6 +117,26 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
           [...fresh, ...stored],
           fresh.length === 1 ? "Recurring payment added." : "Recurring payments added.",
         );
+      },
+      replaceCategoryName(type, from, to) {
+        if (from === to) {
+          return;
+        }
+        const now = new Date().toISOString();
+        const stored = readTransactions();
+        let changed = false;
+        const next = stored.map((transaction) => {
+          if (transaction.type !== type || transaction.category !== from) {
+            return transaction;
+          }
+          changed = true;
+          return { ...transaction, category: to, updatedAt: now };
+        });
+        if (!changed) {
+          return;
+        }
+        writeTransactions(next);
+        setTransactions(next);
       },
       importTransactions(inputs) {
         if (inputs.length === 0) {

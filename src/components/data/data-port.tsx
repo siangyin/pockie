@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useAccounts } from "@/components/accounts/accounts-provider";
 import { useBudgets } from "@/components/budgets/budgets-provider";
+import { useCategories } from "@/components/categories/categories-provider";
 import { Button } from "@/components/ui/button";
 import { useTransactions } from "@/components/transactions/transactions-provider";
 import { parseCsv } from "@/lib/csv";
@@ -16,6 +17,7 @@ import {
   type ImportField,
   type ImportMapping,
 } from "@/lib/import/transactions";
+import { namesFor } from "@/lib/categories";
 import { formatMinorAsSgd } from "@/lib/money/sgd";
 
 const fieldClassName =
@@ -28,17 +30,22 @@ export function DataPort() {
   const { accounts, ready: accountsReady } = useAccounts();
   const { transactions, ready: transactionsReady, notice, importTransactions } = useTransactions();
   const { budgets, ready: budgetsReady } = useBudgets();
+  const { categories, ready: categoriesReady } = useCategories();
   const [headers, setHeaders] = useState<string[]>([]);
   const [rows, setRows] = useState<string[][]>([]);
   const [mapping, setMapping] = useState<ImportMapping>(emptyMapping());
   const [fileError, setFileError] = useState("");
   const [includeDuplicates, setIncludeDuplicates] = useState(false);
   const [pasted, setPasted] = useState("");
-  const ready = accountsReady && transactionsReady && budgetsReady;
+  const ready = accountsReady && transactionsReady && budgetsReady && categoriesReady;
 
   const preview = useMemo(
-    () => previewImport(headers, rows, mapping, accounts, transactions),
-    [accounts, headers, mapping, rows, transactions],
+    () =>
+      previewImport(headers, rows, mapping, accounts, transactions, {
+        expense: namesFor(categories, "expense"),
+        income: namesFor(categories, "income"),
+      }),
+    [accounts, categories, headers, mapping, rows, transactions],
   );
   const readyRows = preview.filter((row) => row.status === "ready" && row.input);
   const duplicateRows = preview.filter((row) => row.status === "duplicate" && row.input);

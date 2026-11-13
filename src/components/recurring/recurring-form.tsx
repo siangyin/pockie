@@ -5,12 +5,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAccounts } from "@/components/accounts/accounts-provider";
 import { usePreferredAccount } from "@/components/accounts/use-preferred-account";
+import { useCategories } from "@/components/categories/categories-provider";
 import { AccountSelect } from "@/components/accounts/account-select";
 import { useRecurring } from "@/components/recurring/recurring-provider";
 import { Button } from "@/components/ui/button";
 import { DateField } from "@/components/forms/date-field";
 import { rememberAccount } from "@/lib/accounts/last-used";
-import { expenseCategories, incomeCategories } from "@/lib/categories";
+import { namesFor } from "@/lib/categories";
 import { isIsoDate } from "@/lib/dates/iso";
 import { minorToInput, parseSgdToMinor } from "@/lib/money/sgd";
 import { frequencies, frequencyLabels, isFrequency } from "@/lib/recurring/types";
@@ -60,14 +61,19 @@ function ScheduleEditor({ scheduleId }: { scheduleId?: string }) {
   const [merchant, setMerchant] = useState(existing?.merchant ?? "");
   const [notes, setNotes] = useState(existing?.notes ?? "");
   const [error, setError] = useState("");
-  const categories = kind === "expense" ? expenseCategories : incomeCategories;
+  const { categories: savedCategories, ready: categoriesReady } = useCategories();
+  const categories = namesFor(
+    savedCategories,
+    kind,
+    existing && existing.type === kind ? existing.category : null,
+  );
   const active = accounts.filter((account) => !account.isArchived);
   const fieldId = existing ? `schedule-${existing.id}` : "new-schedule";
-  const canSave = ready && accountsReady && active.length > 0;
+  const canSave = ready && accountsReady && categoriesReady && active.length > 0 && categories.length > 0;
 
   function handleKind(nextKind: "expense" | "income") {
     setKind(nextKind);
-    const nextCategories = nextKind === "expense" ? expenseCategories : incomeCategories;
+    const nextCategories = namesFor(savedCategories, nextKind);
     if (!nextCategories.some((item) => item === category)) {
       setCategory("");
     }
