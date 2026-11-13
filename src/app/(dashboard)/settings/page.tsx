@@ -1,12 +1,5 @@
 import Link from "next/link";
 
-const sections = [
-  {
-    title: "Preferences",
-    body: "Singapore dollars, and dates in Asia/Singapore.",
-  },
-];
-
 export const metadata = {
   title: "Settings",
 };
@@ -65,12 +58,17 @@ export default function SettingsPage() {
             </p>
           </Link>
         </li>
-        {sections.map((section) => (
-          <li key={section.title} className="rounded-2xl bg-card p-4 ring-1 ring-border">
-            <h2 className="font-semibold">{section.title}</h2>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground">{section.body}</p>
-          </li>
-        ))}
+        <li>
+          <Link
+            href="/settings/preferences"
+            className="block rounded-2xl bg-card p-4 ring-1 ring-border focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring"
+          >
+            <h2 className="font-semibold">Preferences</h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              Singapore dollars, and dates in Asia/Singapore.
+            </p>
+          </Link>
+        </li>
       </ul>
     </div>
   );
