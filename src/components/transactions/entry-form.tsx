@@ -1,3 +1,4 @@
+import { AccountSelect, AccountsSaveNote } from "@/components/accounts/account-select";
 import { Button } from "@/components/ui/button";
 import { DateField } from "@/components/forms/date-field";
 
@@ -64,12 +65,7 @@ export function EntryForm({ kind }: { kind: "expense" | "income" }) {
         </select>
       </label>
 
-      <label htmlFor="account" className="grid gap-1.5 text-sm font-semibold">
-        Account
-        <select id="account" name="account" required disabled className={fieldClassName}>
-          <option value="">No accounts yet</option>
-        </select>
-      </label>
+      <AccountSelect id="account" label="Account" />
 
       <DateField id="date" label="Date" />
 
@@ -92,9 +88,7 @@ export function EntryForm({ kind }: { kind: "expense" | "income" }) {
       <Button type="button" disabled className="h-12 w-full text-base">
         {expense ? "Save expense" : "Save income"}
       </Button>
-      <p id="save-note" className="text-sm leading-6 text-muted-foreground">
-        Saving starts once your accounts are set up.
-      </p>
+      <AccountsSaveNote kind={kind} />
     </form>
   );
 }

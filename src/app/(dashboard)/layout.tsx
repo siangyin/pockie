@@ -1,3 +1,4 @@
+import { AccountsProvider } from "@/components/accounts/accounts-provider";
 import { AppShell } from "@/components/layout/app-shell";
 
 export default function DashboardLayout({
@@ -5,5 +6,9 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <AppShell>{children}</AppShell>;
+  return (
+    <AccountsProvider>
+      <AppShell>{children}</AppShell>
+    </AccountsProvider>
+  );
 }

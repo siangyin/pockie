@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AccountSelect, AccountsSaveNote } from "@/components/accounts/account-select";
 import { Button } from "@/components/ui/button";
 import { DateField } from "@/components/forms/date-field";
 
@@ -36,25 +37,13 @@ export default function AddTransferPage() {
             className={fieldClassName}
           />
         </label>
-        <label htmlFor="from-account" className="grid gap-1.5 text-sm font-semibold">
-          From
-          <select id="from-account" name="from-account" required disabled className={fieldClassName}>
-            <option value="">No accounts yet</option>
-          </select>
-        </label>
-        <label htmlFor="to-account" className="grid gap-1.5 text-sm font-semibold">
-          To
-          <select id="to-account" name="to-account" required disabled className={fieldClassName}>
-            <option value="">No accounts yet</option>
-          </select>
-        </label>
+        <AccountSelect id="from-account" label="From" />
+        <AccountSelect id="to-account" label="To" />
         <DateField id="date" label="Date" />
         <Button type="button" disabled className="h-12 w-full text-base">
           Save transfer
         </Button>
-        <p id="save-note" className="text-sm leading-6 text-muted-foreground">
-          Saving starts once you have two accounts.
-        </p>
+        <AccountsSaveNote kind="transfer" />
       </form>
     </div>
   );
