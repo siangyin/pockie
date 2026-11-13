@@ -3,13 +3,15 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useBudgets } from "@/components/budgets/budgets-provider";
+import { CategoryBars } from "@/components/charts/category-bars";
 import { useRecurring } from "@/components/recurring/recurring-provider";
 import { EmptyState } from "@/components/layout/empty-state";
 import { TransactionRows } from "@/components/transactions/transaction-rows";
 import { useTransactions } from "@/components/transactions/transactions-provider";
 import { monthBudgetSummary } from "@/lib/budgets/progress";
 import { formatDisplayDate } from "@/lib/dates/iso";
-import { formatYearMonth, shiftYearMonth, singaporeDate } from "@/lib/dates/month";
+import { formatYearMonth, monthBounds, shiftYearMonth, singaporeDate } from "@/lib/dates/month";
+import { categorySpending } from "@/lib/reports/summary";
 import { upcomingSchedules } from "@/lib/recurring/schedule";
 import { monthTotals } from "@/lib/transactions/balance";
 import { formatMinorAsSgd } from "@/lib/money/sgd";
@@ -30,7 +32,9 @@ export function HomeDashboard() {
     setMonthKey(date.slice(0, 7));
   }, []);
 
+  const bounds = monthKey ? monthBounds(monthKey) : null;
   const totals = monthKey ? monthTotals(transactions, monthKey) : null;
+  const categories = bounds ? categorySpending(transactions, bounds.start, bounds.end) : [];
   const showTotals = ready && totals;
   const budgetSummary =
     monthKey && budgetsReady ? monthBudgetSummary(budgets, transactions, monthKey) : null;
@@ -111,6 +115,21 @@ export function HomeDashboard() {
           </p>
         </article>
       </div>
+
+      <section>
+        <h2 className="font-semibold">Spending by category</h2>
+        {showTotals && categories.length > 0 ? (
+          <CategoryBars items={categories} totalMinor={totals.expenseMinor} />
+        ) : (
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">
+            {showTotals
+              ? viewingCurrent
+                ? "No spending this month."
+                : `No spending in ${monthLabel}.`
+              : "Loading spending…"}
+          </p>
+        )}
+      </section>
 
       <Link
         href="/reports"

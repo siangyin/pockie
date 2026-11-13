@@ -42,6 +42,11 @@ export function formatYearMonth(yearMonth: string) {
   return name ? `${name} ${year}` : yearMonth;
 }
 
+export function shortMonth(yearMonth: string) {
+  const month = Number(yearMonth.split("-")[1]);
+  return monthNames[month - 1]?.slice(0, 3) ?? yearMonth;
+}
+
 export function monthBounds(yearMonth: string) {
   const [yearText, monthText] = yearMonth.split("-");
   const year = Number(yearText);
