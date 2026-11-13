@@ -4,9 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AccountSelect } from "@/components/accounts/account-select";
 import { useAccounts } from "@/components/accounts/accounts-provider";
+import { usePreferredAccount } from "@/components/accounts/use-preferred-account";
 import { Button } from "@/components/ui/button";
 import { DateField } from "@/components/forms/date-field";
 import { useTransactions } from "@/components/transactions/transactions-provider";
+import { rememberTransfer } from "@/lib/accounts/last-used";
 import { parseSgdToMinor } from "@/lib/money/sgd";
 
 const fieldClassName =
@@ -17,8 +19,8 @@ export function TransferForm() {
   const { accounts, ready } = useAccounts();
   const { addTransaction } = useTransactions();
   const [amount, setAmount] = useState("");
-  const [fromId, setFromId] = useState("");
-  const [toId, setToId] = useState("");
+  const [fromId, setFromId] = usePreferredAccount("from");
+  const [toId, setToId] = usePreferredAccount("to", "", fromId);
   const [error, setError] = useState("");
   const active = accounts.filter((account) => !account.isArchived);
   const canSave = ready && active.length >= 2;
@@ -47,6 +49,7 @@ export function TransferForm() {
       return;
     }
 
+    rememberTransfer(from.id, to.id);
     addTransaction(
       {
         type: "transfer",

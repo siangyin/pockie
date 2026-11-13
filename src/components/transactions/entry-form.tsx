@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAccounts } from "@/components/accounts/accounts-provider";
+import { usePreferredAccount } from "@/components/accounts/use-preferred-account";
 import { AccountSelect } from "@/components/accounts/account-select";
 import { Button } from "@/components/ui/button";
 import { DateField } from "@/components/forms/date-field";
 import { useTransactions } from "@/components/transactions/transactions-provider";
+import { rememberAccount } from "@/lib/accounts/last-used";
 import { expenseCategories, incomeCategories } from "@/lib/categories";
 import { parseSgdToMinor } from "@/lib/money/sgd";
 
@@ -21,7 +23,7 @@ export function EntryForm({ kind }: { kind: "expense" | "income" }) {
   const { addTransaction } = useTransactions();
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
-  const [accountId, setAccountId] = useState("");
+  const [accountId, setAccountId] = usePreferredAccount("account");
   const [merchant, setMerchant] = useState("");
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
@@ -51,6 +53,7 @@ export function EntryForm({ kind }: { kind: "expense" | "income" }) {
       return;
     }
 
+    rememberAccount(account.id);
     addTransaction(
       {
         type: kind,

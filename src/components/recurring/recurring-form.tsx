@@ -4,10 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAccounts } from "@/components/accounts/accounts-provider";
+import { usePreferredAccount } from "@/components/accounts/use-preferred-account";
 import { AccountSelect } from "@/components/accounts/account-select";
 import { useRecurring } from "@/components/recurring/recurring-provider";
 import { Button } from "@/components/ui/button";
 import { DateField } from "@/components/forms/date-field";
+import { rememberAccount } from "@/lib/accounts/last-used";
 import { expenseCategories, incomeCategories } from "@/lib/categories";
 import { isIsoDate } from "@/lib/dates/iso";
 import { minorToInput, parseSgdToMinor } from "@/lib/money/sgd";
@@ -53,7 +55,7 @@ function ScheduleEditor({ scheduleId }: { scheduleId?: string }) {
   const [kind, setKind] = useState<"expense" | "income">(existing?.type ?? "expense");
   const [amount, setAmount] = useState(existing ? minorToInput(existing.amountMinor) : "");
   const [category, setCategory] = useState(existing?.category ?? "");
-  const [accountId, setAccountId] = useState(existing?.accountId ?? "");
+  const [accountId, setAccountId] = usePreferredAccount("account", existing?.accountId ?? "");
   const [frequency, setFrequency] = useState(existing?.frequency ?? "monthly");
   const [merchant, setMerchant] = useState(existing?.merchant ?? "");
   const [notes, setNotes] = useState(existing?.notes ?? "");
@@ -98,6 +100,7 @@ function ScheduleEditor({ scheduleId }: { scheduleId?: string }) {
       return;
     }
 
+    rememberAccount(account.id);
     saveSchedule(
       {
         type: kind,
