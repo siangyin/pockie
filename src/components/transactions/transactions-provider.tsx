@@ -22,6 +22,7 @@ type TransactionsContextValue = {
   addTransaction: (input: TransactionInput, message: string) => void;
   deleteTransaction: (id: string) => void;
   recordGenerated: (additions: Transaction[]) => void;
+  importTransactions: (inputs: TransactionInput[]) => void;
 };
 
 const TransactionsContext = createContext<TransactionsContextValue | null>(null);
@@ -92,6 +93,32 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
         commit(
           [...fresh, ...stored],
           fresh.length === 1 ? "Recurring payment added." : "Recurring payments added.",
+        );
+      },
+      importTransactions(inputs) {
+        if (inputs.length === 0) {
+          return;
+        }
+        const now = new Date().toISOString();
+        const created = inputs.map((input) => ({
+          id: crypto.randomUUID(),
+          type: input.type,
+          accountId: input.accountId,
+          counterAccountId: input.counterAccountId ?? null,
+          category: input.category ?? null,
+          amountMinor: input.amountMinor,
+          currency: "SGD" as const,
+          transactionDate: input.transactionDate,
+          merchant: input.merchant?.trim() ?? "",
+          notes: input.notes?.trim() ?? "",
+          recurringId: null,
+          occurrenceDate: null,
+          createdAt: now,
+          updatedAt: now,
+        }));
+        commit(
+          [...created, ...readTransactions()],
+          created.length === 1 ? "1 transaction imported." : `${created.length} transactions imported.`,
         );
       },
     };

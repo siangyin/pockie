@@ -6,10 +6,6 @@ const sections = [
     body: "Groups for income and spending. You can rename them later.",
   },
   {
-    title: "Import / Export",
-    body: "Bring in a CSV, or take your transactions with you.",
-  },
-  {
     title: "Preferences",
     body: "Singapore dollars, and dates in Asia/Singapore.",
   },
@@ -48,6 +44,17 @@ export default function SettingsPage() {
             <h2 className="font-semibold">Recurring</h2>
             <p className="mt-1 text-sm leading-6 text-muted-foreground">
               Regular income and bills, added on the due date.
+            </p>
+          </Link>
+        </li>
+        <li>
+          <Link
+            href="/settings/data"
+            className="block rounded-2xl bg-card p-4 ring-1 ring-border focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring"
+          >
+            <h2 className="font-semibold">Import / Export</h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              Bring in a CSV, or take your transactions and budgets with you.
             </p>
           </Link>
         </li>
