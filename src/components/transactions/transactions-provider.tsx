@@ -20,6 +20,7 @@ type TransactionsContextValue = {
   ready: boolean;
   notice: string | null;
   addTransaction: (input: TransactionInput, message: string) => void;
+  updateTransaction: (id: string, input: TransactionInput) => void;
   deleteTransaction: (id: string) => void;
   recordGenerated: (additions: Transaction[]) => void;
   importTransactions: (inputs: TransactionInput[]) => void;
@@ -67,6 +68,27 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
           updatedAt: now,
         };
         commit([transaction, ...transactions], message);
+      },
+      updateTransaction(id, input) {
+        const now = new Date().toISOString();
+        commit(
+          readTransactions().map((transaction) =>
+            transaction.id === id
+              ? {
+                  ...transaction,
+                  accountId: input.accountId,
+                  counterAccountId: input.counterAccountId ?? null,
+                  category: input.category ?? null,
+                  amountMinor: input.amountMinor,
+                  transactionDate: input.transactionDate,
+                  merchant: input.merchant?.trim() ?? "",
+                  notes: input.notes?.trim() ?? "",
+                  updatedAt: now,
+                }
+              : transaction,
+          ),
+          "Transaction updated.",
+        );
       },
       deleteTransaction(id) {
         commit(

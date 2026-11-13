@@ -1,11 +1,15 @@
 "use client";
 
+import Link from "next/link";
 import { useAccounts } from "@/components/accounts/accounts-provider";
 import { useTransactions } from "@/components/transactions/transactions-provider";
 import { sortTransactions } from "@/lib/transactions/balance";
 import type { Transaction } from "@/lib/transactions/types";
 import { formatDisplayDate } from "@/lib/dates/iso";
 import { formatMinorAsSgd } from "@/lib/money/sgd";
+
+const actionClassName =
+  "text-sm font-bold text-ink underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring";
 
 function amountLabel(transaction: Transaction) {
   const amount = formatMinorAsSgd(transaction.amountMinor);
@@ -25,10 +29,11 @@ function titleFor(transaction: Transaction) {
   return transaction.category ?? "Transaction";
 }
 
-export function TransactionRows({ limit }: { limit?: number }) {
+export function TransactionRows({ items, limit }: { items?: Transaction[]; limit?: number }) {
   const { accounts } = useAccounts();
   const { transactions, ready, deleteTransaction } = useTransactions();
-  const rows = sortTransactions(transactions).slice(0, limit ?? transactions.length);
+  const source = items ?? sortTransactions(transactions);
+  const rows = source.slice(0, limit ?? source.length);
 
   if (!ready) {
     return <p className="mt-3 text-sm text-muted-foreground">Loading transactions…</p>;
@@ -63,13 +68,14 @@ export function TransactionRows({ limit }: { limit?: number }) {
               </div>
               <p className="font-extrabold">{amountLabel(transaction)}</p>
             </div>
-            <button
-              type="button"
-              className="mt-3 text-sm font-bold text-ink underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring"
-              onClick={() => deleteTransaction(transaction.id)}
-            >
-              Delete
-            </button>
+            <div className="mt-3 flex gap-4">
+              <Link href={`/transactions/${transaction.id}`} className={actionClassName}>
+                Edit
+              </Link>
+              <button type="button" className={actionClassName} onClick={() => deleteTransaction(transaction.id)}>
+                Delete
+              </button>
+            </div>
           </li>
         );
       })}
